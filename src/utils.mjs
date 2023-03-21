@@ -1,4 +1,5 @@
 import fetch from 'node-fetch';
+import moment from 'moment-timezone';
 
 export async function makeCustomRequest(url, options = null) {
 
@@ -47,4 +48,8 @@ export async function makeCkanRequest(url, options = null) {
         throw err;
     }
 
+}
+
+export function nowUnixTimeSeconds() {
+    return moment().unix()
 }

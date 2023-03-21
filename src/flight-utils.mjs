@@ -76,6 +76,10 @@ export function isCanceled(flight) {
 
 }
 
+export function getDestCity(flight) {
+    return flight.CHLOC1T;
+}
+
 
 
 

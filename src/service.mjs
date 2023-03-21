@@ -1,9 +1,11 @@
 import {
     isSameCountry, isInbound, isOutbound, isCanceled,
     isDelayed, getCountry, isAfterOtherFlight, isAfterDateTimeUnix,
-    getFlightTitle
+    getFlightTitle, getDestCity
 } from './flight-utils.mjs'
-import { makeCkanRequest } from './utils.mjs'
+
+import { nowUnixTimeSeconds, makeCkanRequest } from './utils.mjs'
+
 
 export class Service {
 
@@ -14,10 +16,8 @@ export class Service {
     }
 
     async getFlights(country = null) {
-        console.log("--> getFlights - start")
         try {
-
-            //const url = country ? `${this.base_url}&q=${country}` : this.base_url;
+            console.log("--> getFlights - start")
             const flightsArr = await makeCkanRequest(this.base_url);
 
             console.log("--> how many flights?")
@@ -35,9 +35,8 @@ export class Service {
     }
 
     async getInboundFlights(country = null) {
-        console.log("--> getInboundFlights - start")
         try {
-
+            console.log("--> getInboundFlights - start")
             const flightsArr = await makeCkanRequest(this.base_url);
 
             console.log("--> how many flights?")
@@ -57,9 +56,8 @@ export class Service {
     }
 
     async getOutboundFlights(country = null) {
-        console.log("--> getOutboundFlights - start")
         try {
-
+            console.log("--> getOutboundFlights - start")
             const flightsArr = await makeCkanRequest(this.base_url);
 
             console.log("--> how many flights?")
@@ -79,9 +77,8 @@ export class Service {
     }
 
     async getDelayedFlights() {
-        console.log("--> getDelayedFlights - start")
         try {
-
+            console.log("--> getDelayedFlights - start")
             const flightsArr = await makeCkanRequest(this.base_url);
 
             console.log("--> how many flights?")
@@ -100,19 +97,18 @@ export class Service {
     }
 
     async getMostPopularDest() {
-        console.log("--> getMostPopularDest - start")
         try {
-
+            console.log("--> getMostPopularDest - start")
             const flightsArr = await makeCkanRequest(this.base_url);
 
             console.log("--> count for each city the number of outbound flights");
             const counters = {};
-            let maxFlights = 0;
             let popularCity = "";
+
             flightsArr.forEach(flight => {
                 if (isOutbound(flight)) {
                     //increment counter of city
-                    const city = flight.CHLOC1T;
+                    const city = getDestCity(flight);
                     if (!(city in counters)) {
                         counters[city] = 1;
                     }
@@ -145,10 +141,11 @@ export class Service {
             const countryMap = {};
 
             for (let flight of flightsArr) {
-
-                if (isCanceled(flight)) {
+                if (isCanceled(flight) || !isAfterDateTimeUnix(flight, nowUnixTimeSeconds())) {
                     continue;
                 }
+
+                console.log("--> flight to consider")
 
                 let key = isOutbound(flight) ? "earliestOutbound" : "latestInbound";
                 let country = getCountry(flight);
@@ -186,8 +183,7 @@ export class Service {
                 if (outboundFlight && inboundFlight) {
                     //check if the updated combination is a possible getaway 
                     console.log({ outboundFlight, inboundFlight })
-                    const nowUnix = Date.now();
-                    if (isAfterDateTimeUnix(outboundFlight, nowUnix) && isAfterOtherFlight(inboundFlight, outboundFlight)) {
+                    if (isAfterOtherFlight(inboundFlight, outboundFlight)) {
                         return {
                             departure: getFlightTitle(outboundFlight),
                             arrival: getFlightTitle(inboundFlight)

@@ -1,11 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import { Service } from './service.mjs';
 import fs from 'fs/promises';
 import * as dotenv from 'dotenv';
 import { Controller } from './controller.mjs';
 
-if (process.env.TLV_FLIGHTS_PORT !== "production") {
+if (process.env.NODE_ENV !== "production") {
+    console.log("--> Starting Test environment")
     dotenv.config();
 }
 
